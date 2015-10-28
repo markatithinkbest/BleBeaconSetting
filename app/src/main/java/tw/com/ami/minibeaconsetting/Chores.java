@@ -36,7 +36,7 @@ import android.util.Log;
 public class Chores {
 	
 	private static final String TAG = MainActivity.TAG + "-Chores";
-	private static final boolean D = MainActivity.D;
+	private static final boolean D = MainActivity.IS_DEBUG;
 
 	private boolean isBleSupported = false;
 	private boolean isLollipopApi = (Build.VERSION.SDK_INT > Build.VERSION_CODES.KITKAT_WATCH);

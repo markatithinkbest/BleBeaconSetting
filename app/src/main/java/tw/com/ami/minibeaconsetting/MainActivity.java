@@ -42,7 +42,7 @@ import android.widget.AdapterView.OnItemClickListener;
 public class MainActivity extends Activity {
 	
 	protected static final String TAG = "MiniBeacon";
-	protected static final boolean D = true;
+	protected static final boolean IS_DEBUG = true;
 	
 	private Context mContext;
 	private Chores mChores;
@@ -154,21 +154,23 @@ public class MainActivity extends Activity {
 
 			String info = ((TextView) view).getText().toString();
 			
-			if (D) Log.d(TAG, "onItemClick() : info = [" + info + "]");
+			if (IS_DEBUG) Log.d(TAG, "onItemClick() : info = [" + info + "]");
 			
             if ( null != info && info.length() >= 17) {                	
                 // Get the device MAC address, which is the last 17 chars in the View
                 String address = info.substring(info.length() - 17);
 
-                if (D) Log.d(TAG, "onItemClick() : Bluetooth address = [" + address + "]");
-                
-                if (BluetoothAdapter.checkBluetoothAddress(address)){             	
+                if (IS_DEBUG) Log.d(TAG, "onItemClick() : Bluetooth address = [" + address + "]");
+
+				// when user select device, show device's MAC for connect
+				mTxVwConnectedDeviceInfo.setText(address);
+
+				if (BluetoothAdapter.checkBluetoothAddress(address)){
                 	mSelectedDevice = mAdapter.getRemoteDevice(address); 	
                 } else {
                 	Log.e(TAG, "onItemClick() : Invalid Bluetooth address = [" + address + "]");
                 }
-            }
-            else {
+            } else {
                 Log.e(TAG, "onItemClick() : Unknown item string = " + info);
             }      	
 		}		
@@ -217,11 +219,11 @@ public class MainActivity extends Activity {
 	private void setUiResourceDefaultContents(){
 		
 		mTxVwConnectedDeviceInfo.setText(getResources().getText(R.string.default_device).toString());
-		mEdTxUuid.setText(getResources().getText(R.string.default_uuid).toString());
-		mEdTxMajorId.setText(getResources().getText(R.string.default_major_id).toString());
-		mEdTxMinorId.setText(getResources().getText(R.string.default_minor_id).toString());
-		mEdTxMeasuredPower.setText(getResources().getText(R.string.default_measured_power).toString());
-		mEdTxAdvInterval.setText(getResources().getText(R.string.default_advertising_interval).toString());
+		mEdTxUuid.setText(getResources().getText(R.string.default_uuid));
+		mEdTxMajorId.setText(getResources().getText(R.string.default_major_id));
+		mEdTxMinorId.setText(getResources().getText(R.string.default_minor_id));
+		mEdTxMeasuredPower.setText(getResources().getText(R.string.default_measured_power));
+		mEdTxAdvInterval.setText(getResources().getText(R.string.default_advertising_interval));
 		mSpnrLed.setSelection(mArAdLedOnOff.getPosition("OFF"));
 		mSpnrOutputPower.setSelection(mArAdOutputPower.getPosition("0dBm"));
 		
@@ -263,23 +265,23 @@ public class MainActivity extends Activity {
 			newStr = "0"+str.toUpperCase();
 		}
 		
-		if (D) Log.d(TAG, "convertHexStringToByte() : Original input string = " + str + " New = " + newStr);
+		if (IS_DEBUG) Log.d(TAG, "convertHexStringToByte() : Original input string = " + str + " New = " + newStr);
 		
 		char[] charBuffer = newStr.toCharArray();		
 		int length = charBuffer.length;
 		
-		if (D) Log.d(TAG, "convertHexStringToByte() : charBuffer size = " + length);
+		if (IS_DEBUG) Log.d(TAG, "convertHexStringToByte() : charBuffer size = " + length);
 		
 		byte[] byteBuffer = new byte[length >> 1];
 		length = byteBuffer.length;
 		
-		if (D) Log.d(TAG, "convertHexStringToByte() : byteBuffer size = " + length);
+		if (IS_DEBUG) Log.d(TAG, "convertHexStringToByte() : byteBuffer size = " + length);
 		
 		for(int i = 0; i < length; i++) {
 			int lV = STRING_HEX_NUM.indexOf((int)charBuffer[i * 2]);
 			int rV = STRING_HEX_NUM.indexOf((int)charBuffer[i * 2 + 1]);
 			
-			if (D) Log.d(TAG, "lV = " + lV + " rV = " + rV); 
+			if (IS_DEBUG) Log.d(TAG, "lV = " + lV + " rV = " + rV);
 			
 			byteBuffer[i] = (byte) (((lV << 4) & 0x00F0) | (rV & 0x000F));
 		}
@@ -346,7 +348,7 @@ public class MainActivity extends Activity {
 			return null;
 		}
 		
-		if (D) Log.d(TAG, "checkAndConvertUuid() : longStr = " + longStr);
+		if (IS_DEBUG) Log.d(TAG, "checkAndConvertUuid() : longStr = " + longStr);
 		
 		return convertHexStringToByte(longStr);
 	}
@@ -379,7 +381,7 @@ public class MainActivity extends Activity {
 		synchronized(mArAdDevices){		
 			int count = mArAdDevices.getCount();
 			
-			if (D) Log.d(TAG, "onDeviceFound() : Address = [" + address + "]" + " Count = " + count);
+			if (IS_DEBUG) Log.d(TAG, "onDeviceFound() : Address = [" + address + "]" + " Count = " + count);
 			
 			if (null == address){
 				Log.e(TAG, "onDeviceFound() : address is null !!!");
@@ -391,10 +393,10 @@ public class MainActivity extends Activity {
 				for (int i = 0; i < count; i++){
 					String s = (String)mArAdDevices.getItem(i);
 					
-					if (D) Log.d(TAG, "onDeviceFound() : Retrived s = [" + s + "]");
+					if (IS_DEBUG) Log.d(TAG, "onDeviceFound() : Retrived s = [" + s + "]");
 					
 					if (s.contains(address)){
-						if (D) Log.d(TAG, "onDeviceFound() : Bingo...");
+						if (IS_DEBUG) Log.d(TAG, "onDeviceFound() : Bingo...");
 						mArAdDevices.remove(s);
 						break;
 					} 
@@ -412,7 +414,11 @@ public class MainActivity extends Activity {
 		mConnectedDevice = device;
 		setUiResourceEnabled(true);
 		mSpnrDeviceType.setEnabled(false);
-		mTxVwConnectedDeviceInfo.setText("Connected with " + address + " " + name); 
+//		mTxVwConnectedDeviceInfo.setText("Connected with " + address + " " + name);
+		mTxVwConnectedDeviceInfo.setText(address + " " + name);
+		if (IS_DEBUG) Log.d(TAG, "name is "+name);
+
+
 	}
 	
 	
@@ -427,7 +433,7 @@ public class MainActivity extends Activity {
 	
 	protected void onDataAvailable(BluetoothDevice device, int type, byte[] data){
 		
-		if (D) Log.d(TAG, "onDataAvailable() : Received " + data.length + " bytes");
+		if (IS_DEBUG) Log.d(TAG, "onDataAvailable() : Received " + data.length + " bytes");
 		
 		String tmp = "";
 		
@@ -444,7 +450,7 @@ public class MainActivity extends Activity {
 			tmp = convertByteToHexString(data);
 		}
 		
-		if (D) Log.d(TAG, "onDataAvailable() : Received = " + data + " New = " + tmp);
+		if (IS_DEBUG) Log.d(TAG, "onDataAvailable() : Received = " + data + " New = " + tmp);
 		
 		switch (type){
 		case RedBearBleMini.TYPE_CHARACTERISTIC_UUID:
@@ -470,7 +476,9 @@ public class MainActivity extends Activity {
 			break;
 		case RedBearBleMini.TYPE_CHARACTERISTIC_FW_VERSION:
 			Log.i(TAG, "onDataAvailable() : FW version = " + tmp);
-			mTxVwConnectedDeviceInfo.setText("Connected with " + device.getAddress() + " " + device.getName() + " Firmware version : " + tmp); 
+//			mTxVwConnectedDeviceInfo.setText("Connected with " + device.getAddress() + " " + device.getName() + " Firmware version : " + tmp);
+			mTxVwConnectedDeviceInfo.setText(""+ device.getAddress() + "\n" + tmp);
+
 			break;
 		default:
 			Log.e(TAG, "onDataAvailable() : Unknown event = " + type);
@@ -481,7 +489,7 @@ public class MainActivity extends Activity {
 	
 	public void onClickTgBtnConnect(View view){
 		
-		if (D) Log.d(TAG, "+++ onClickTgBtnConnect +++");
+		if (IS_DEBUG) Log.d(TAG, "+++ onClickTgBtnConnect +++");
 		
 		if (null != mSelectedDevice){
 			
@@ -498,13 +506,13 @@ public class MainActivity extends Activity {
 	
 	public void onClickBtnSetUuid(View view){
 		
-		if (D) Log.d(TAG, "+++ onClickBtnSetUuid +++");
+		if (IS_DEBUG) Log.d(TAG, "+++ onClickBtnSetUuid +++");
 		
 		String uuid = mEdTxUuid.getText().toString();
 		
 		if (null != uuid){
 			
-			if (D) Log.d(TAG, "onClickBtnSetUuid() : UUID = [" + uuid + "]");
+			if (IS_DEBUG) Log.d(TAG, "onClickBtnSetUuid() : UUID = [" + uuid + "]");
 			
 			byte[] tmp = checkAndConvertUuid(uuid);
 			
@@ -521,13 +529,13 @@ public class MainActivity extends Activity {
 	public void onClickBtnSetMajorId(View view){
 
 		Log.d("markchen", "///+++ onClickBtnSetMajorId +++");
-			if (D) Log.d(TAG, "+++ onClickBtnSetMajorId +++");
+			if (IS_DEBUG) Log.d(TAG, "+++ onClickBtnSetMajorId +++");
 		
 		String id = mEdTxMajorId.getText().toString();
 		
 		if (null != id){
 			
-			if (D) Log.d(TAG, "onClickBtnSetMajorId() : id = [" + id + "]");
+			if (IS_DEBUG) Log.d(TAG, "onClickBtnSetMajorId() : id = [" + id + "]");
 			
 			if (!isValidIdValue(Integer.valueOf(id))){
 				Log.e(TAG, "onClickBtnSetMajorId() : Invalid ID value ! It should be 0 ~ 65535");
@@ -553,13 +561,13 @@ public class MainActivity extends Activity {
 	
 	public void onClickBtnSetMinorId(View view){
 		
-		if (D) Log.d(TAG, "+++ onClickBtnSetMinorId +++");
+		if (IS_DEBUG) Log.d(TAG, "+++ onClickBtnSetMinorId +++");
 		
 		String id = mEdTxMinorId.getText().toString();
 		
 		if (null != id){
 			
-			if (D) Log.d(TAG, "onClickBtnSetMinorId() : id = [" + id + "]");
+			if (IS_DEBUG) Log.d(TAG, "onClickBtnSetMinorId() : id = [" + id + "]");
 			
 			if (!isValidIdValue(Integer.valueOf(id))){
 				Log.e(TAG, "onClickBtnSetMinorId() : Invalid ID value ! It should be 0 ~ 65535");
@@ -584,13 +592,13 @@ public class MainActivity extends Activity {
 	
 	public void onClickBtnSetMeasuredPower(View view){
 		
-		if (D) Log.d(TAG, "+++ onClickBtnSetMeasuredPower +++");
+		if (IS_DEBUG) Log.d(TAG, "+++ onClickBtnSetMeasuredPower +++");
 		
 		String value = mEdTxMeasuredPower.getText().toString();
 		
 		if (null != value){
 			
-			if (D) Log.d(TAG, "onClickBtnSetMeasuredPower() : value = [" + value + "]");
+			if (IS_DEBUG) Log.d(TAG, "onClickBtnSetMeasuredPower() : value = [" + value + "]");
 			
 			int intValue = Integer.valueOf(value);
 			
@@ -601,7 +609,7 @@ public class MainActivity extends Activity {
 			
 			String hexValue = Integer.toHexString(intValue);
 			
-			if (D) Log.d(TAG, "onClickBtnSetMeasuredPower() : hexValue = [" + hexValue + "]");
+			if (IS_DEBUG) Log.d(TAG, "onClickBtnSetMeasuredPower() : hexValue = [" + hexValue + "]");
 			
 			if (hexValue.length() > 2){
 				hexValue = hexValue.substring(hexValue.length()-2);
@@ -609,7 +617,7 @@ public class MainActivity extends Activity {
 				hexValue = "0"+hexValue;
 			}
 			
-			if (D) Log.d(TAG, "onClickBtnSetMeasuredPower() : hexValue = [" + hexValue + "]");
+			if (IS_DEBUG) Log.d(TAG, "onClickBtnSetMeasuredPower() : hexValue = [" + hexValue + "]");
 			
 			byte[] tmp = convertHexStringToByte(hexValue);
 			
@@ -625,12 +633,12 @@ public class MainActivity extends Activity {
 	
 	public void onClickBtnSetLed(View view){
 		
-		if (D) Log.d(TAG, "+++ onClickBtnSetLed +++");
+		if (IS_DEBUG) Log.d(TAG, "+++ onClickBtnSetLed +++");
 		
 		int index = mSpnrLed.getSelectedItemPosition();
 		String str = Integer.toString(index);
 		
-		if (D) Log.d(TAG, "onClickBtnSetLed() : index = [" + index + "] String = " + str);
+		if (IS_DEBUG) Log.d(TAG, "onClickBtnSetLed() : index = [" + index + "] String = " + str);
 		
 		byte[] tmp = convertHexStringToByte(str);
 		
@@ -643,13 +651,13 @@ public class MainActivity extends Activity {
 	
 	public void onClickBtnSetAdvInterval(View view){
 		
-		if (D) Log.d(TAG, "+++ onClickBtnSetAdvInterval +++");
+		if (IS_DEBUG) Log.d(TAG, "+++ onClickBtnSetAdvInterval +++");
 		
 		String value = mEdTxAdvInterval.getText().toString();
 		
 		if (null != value){
 			
-			if (D) Log.d(TAG, "onClickBtnSetAdvInterval() : value = [" + value + "]");
+			if (IS_DEBUG) Log.d(TAG, "onClickBtnSetAdvInterval() : value = [" + value + "]");
 			
 			int intValue = Integer.valueOf(value);
 			
@@ -660,7 +668,7 @@ public class MainActivity extends Activity {
 			
 			intValue += (5 - (intValue%5));
 			
-			if (D) Log.d(TAG, "onClickBtnSetAdvInterval() : Final intValue = " + intValue);
+			if (IS_DEBUG) Log.d(TAG, "onClickBtnSetAdvInterval() : Final intValue = " + intValue);
 			
 			String hexValue = Integer.toHexString(intValue);
 			
@@ -683,12 +691,12 @@ public class MainActivity extends Activity {
 	
 	public void onClickBtnSetOutputPower(View view){
 		
-		if (D) Log.d(TAG, "+++ onClickBtnSetOutputPower +++");
+		if (IS_DEBUG) Log.d(TAG, "+++ onClickBtnSetOutputPower +++");
 		
 		int index = mSpnrOutputPower.getSelectedItemPosition();
 		String str = Integer.toString(index);
 		
-		if (D) Log.d(TAG, "onClickBtnSetOutputPower() : index = [" + index + "]");
+		if (IS_DEBUG) Log.d(TAG, "onClickBtnSetOutputPower() : index = [" + index + "]");
 		
 		byte[] tmp = convertHexStringToByte(str);
 		

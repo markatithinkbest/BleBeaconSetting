@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="app_name">MiniBeaconSetting</string>
+    <string name="app_name">MiniBeacon Setting</string>
     <string name="default_device">Choose type and device first...</string>
-    <string name="default_uuid">Company UUID</string>
-    <string name="default_major_id">Major ID</string>
-    <string name="default_minor_id">Minor ID</string>
+    <string name="default_uuid">UUID</string>
+    <string name="default_major_id">Major</string>
+    <string name="default_minor_id">Minor</string>
     <string name="default_measured_power">Measured Power</string>
     <string name="default_led_control">LED switch</string>
-    <string name="default_advertising_interval">Advertising interval</string>
+    <string name="default_advertising_interval">Interval</string>
     <string name="default_output_power">Output power</string>        
     <string name="connect">Connect</string>
     <string name="disconnect">Disconnect</string>

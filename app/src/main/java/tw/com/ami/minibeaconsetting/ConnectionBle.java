@@ -35,7 +35,7 @@ import android.util.Log;
 public abstract class ConnectionBle {
 	
 	protected static final String TAG = MainActivity.TAG + "-CBle";
-	protected static final boolean D = MainActivity.D;
+	protected static final boolean D = MainActivity.IS_DEBUG;
 	
 	protected Chores mChores;
 	protected BluetoothManager mBluetoothManager = null;
